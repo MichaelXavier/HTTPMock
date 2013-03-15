@@ -7,6 +7,7 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , RequestMatcher(..)
                               , HasFakedResponder(..)
                               , FakeResponse
+                              , FakedInteraction
                               , CannedResponse(..)
                               , FakedResponder
                               , HasMockerOptions(..)
@@ -18,6 +19,7 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
 
 import ClassyPrelude
 import Data.Default
+import qualified Data.NonEmpty as NE
 import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
@@ -36,15 +38,18 @@ instance Show RequestMatcher where
 type FakeResponse = LT.Text
 
 -- TODO: more responses
-data CannedResponse = AlwaysReturns FakeResponse deriving (Show, Eq)
+data CannedResponse = ReturnsSequence (NE.T [] FakeResponse) |
+                      AlwaysReturns FakeResponse deriving (Show, Eq)
 
-newtype FakedResponder = FakedResponder { _fakedResponses :: [(RequestMatcher, CannedResponse)] } deriving (Show)
+type FakedInteraction = (RequestMatcher, CannedResponse)
+
+newtype FakedResponder = FakedResponder { _fakedInteractions :: [FakedInteraction] } deriving (Show)
 
 makeClassy ''FakedResponder
 
 --TODO: inelegant
 instance Eq FakedResponder where
-  a == b = (map snd $ a ^. fakedResponses) == (map snd $ b ^. fakedResponses)
+  a == b = (map snd $ a ^. fakedInteractions) == (map snd $ b ^. fakedInteractions)
 
 instance Default FakedResponder where
   def = FakedResponder mempty
