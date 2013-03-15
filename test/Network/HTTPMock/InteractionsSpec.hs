@@ -35,6 +35,10 @@ spec = do
         getResponse req mocker ^. _1 `shouldBe` Just "yep"
       it "returns an unmodified Mocker" $
         getResponse req mocker ^. _2 `shouldBe` mocker
+      it "always returns the stubbed response" $ do
+        responseAfterTimes 2 req mocker `shouldBe` Just "yep"
+      it "always returns the unmodified mocker" $ do
+        mockerAfterTimes 2 req mocker `shouldBe` mocker
 
     describe "with MatchSequence match" $ do
       let mocker = def & responder %~ fakedInteractions <>~ [(reqMatcher, returnsSequence)]
@@ -77,6 +81,5 @@ responseAfterTimes times req = last . runStatefully (getResponse req)
   where runStatefully = evalState . replicateM times . state
 
 mockerAfterTimes :: Int -> Request -> HTTPMocker -> HTTPMocker
------ execState . replicateM 3 . state :: (s -> (a, s)) -> s -> s
 mockerAfterTimes times req = runStatefully (getResponse req)
   where runStatefully = execState . replicateM_ times . state

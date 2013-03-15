@@ -42,7 +42,7 @@ scottyRoutes mockerR = do
 -- use of mockerR doesn't make sense now, but state will mutate in getResponse eventually
 handleMatch mockerR req = do
   mocker <- liftIO $ readIORef mockerR
-  let (mResponse, mocker) = getResponse req mocker
+  let (mResponse, mocker') = getResponse req mocker
   maybe respondNotFound respondSuccess mResponse
 
 respondNotFound :: ActionM ()
