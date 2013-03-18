@@ -17,7 +17,7 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , Port
                               , Request(..)) where
 
-import ClassyPrelude
+import ClassyPrelude hiding (show)
 import Data.Default
 import qualified Data.NonEmpty as NE
 import qualified Data.Text.Lazy as LT
@@ -55,21 +55,29 @@ instance Default FakedResponder where
   def = FakedResponder mempty
 
 data MockerOptions = MockerOptions {
-    _clearBetweenRequests :: Bool
-  , _mockerPort :: Port
+    _mockerPort :: Port
 } deriving (Show, Eq)
 
 makeClassy ''MockerOptions
 
 instance Default MockerOptions where
-  def = MockerOptions True 4568
+  def = MockerOptions 4568
 
 data HTTPMocker = HTTPMocker {
     _responder :: FakedResponder
   , _options   :: MockerOptions
-} deriving (Show, Eq)
+  , _recordedRequests :: Seq Request
+}
 
 makeClassy ''HTTPMocker
 
+-- gross
+instance Show HTTPMocker where
+  show m = "HTTPMocker { _responder = " ++ show (m ^. responder) ++ ", _options = " ++ show (m ^. options) ++ "}"
+
+-- gross
+instance Eq HTTPMocker where
+  a == b = a ^. responder == b ^. responder && a ^. options == b ^. options
+
 instance Default HTTPMocker where
-  def = HTTPMocker def def
+  def = HTTPMocker def def def
