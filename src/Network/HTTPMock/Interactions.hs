@@ -23,8 +23,9 @@ import Network.HTTPMock.Types
 -- < edwardk> well, we have one of those lying around, so we pass it findAndUpdateInteraction and get the signature you want
 -- < edwardk> for interactions: s = t = Mocker, a = b = [Interaction]
 getResponse :: Request -> HTTPMocker -> (Maybe FakeResponse, HTTPMocker)
-getResponse req mocker = mocker & responder . fakedInteractions %%~ findAndUpdateInteraction
+getResponse req mocker = mocker' & responder . fakedInteractions %%~ findAndUpdateInteraction
   where findAndUpdateInteraction = matchResponse req
+        mocker' = mocker & recordedRequests <>~ singleton req
 
 -- something like (uncurry (++) . (id *** f) . break predicate) 
 -- At 0 might help with implementing f

@@ -43,6 +43,7 @@ scottyRoutes mockerR = do
 handleMatch mockerR req = do
   mocker <- liftIO $ readIORef mockerR
   let (mResponse, mocker') = getResponse req mocker
+  liftIO $ writeIORef mockerR mocker'
   maybe respondNotFound respondSuccess mResponse
 
 respondNotFound :: ActionM ()
