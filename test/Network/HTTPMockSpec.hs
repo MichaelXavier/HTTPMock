@@ -5,6 +5,7 @@ module Network.HTTPMockSpec (spec) where
 import ClassyPrelude
 import Control.Lens
 import Data.Default
+import qualified Data.Text.Lazy as LT
 import Network.HTTP.Types (Method)
 import Network.Http.Client ( get
                            , post
@@ -44,15 +45,15 @@ spec = do
   where url = "http://127.0.0.1:4568/foo/bar"
 
 matchPathMocker :: HTTPMocker
-matchPathMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, AlwaysReturns "fake-response")
+matchPathMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, AlwaysReturns $ okFakeResponse "fake-response")
   where fooMatcher = matchPath "/foo/bar"
 
 sequenceMocker :: HTTPMocker
-sequenceMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, ReturnsSequence $ "first-response" !: ["second-response"])
+sequenceMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, ReturnsSequence $ firstResponse !: [secondResponse])
   where fooMatcher = matchPath "/foo/bar"
 
 matchMethodMocker :: HTTPMocker
-matchMethodMocker = def & responder . fakedInteractions <>~ singleton (postMatcher, AlwaysReturns "you sent a POST")
+matchMethodMocker = def & responder . fakedInteractions <>~ singleton (postMatcher, AlwaysReturns postResponse)
   where postMatcher = matchMethod "POST"
 
 getBody url = get url concatHandler'
@@ -82,3 +83,18 @@ extractRequestSummary :: Request -> RequestSummary
 extractRequestSummary req = (meth, joinedPath)
   where meth       = requestMethod req
         joinedPath = requestPath req
+
+postResponse :: FakeResponse
+postResponse = okFakeResponse "you sent a POST"
+
+firstResponse :: FakeResponse
+firstResponse  = okFakeResponse "first-response"
+
+secondResponse :: FakeResponse
+secondResponse = okFakeResponse "second-response"
+
+yep :: FakeResponse
+yep = okFakeResponse "yep"
+
+okFakeResponse :: LT.Text -> FakeResponse
+okFakeResponse body = def & responseBody .~ body

@@ -6,7 +6,8 @@
 module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , RequestMatcher(..)
                               , HasFakedResponder(..)
-                              , FakeResponse
+                              , FakeResponse(..)
+                              , HasFakeResponse(..)
                               , FakedInteraction
                               , CannedResponse(..)
                               , FakedResponder
@@ -16,6 +17,7 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , HTTPMocker(..)
                               , Port
                               , (!:)
+                              , Status(..)
                               , Request(..)) where
 
 import ClassyPrelude hiding (show)
@@ -26,6 +28,8 @@ import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
 -- TODO: rexport Request
+import Network.HTTP.Types ( Status(..)
+                          , status200)
 import Network.Wai (Request(..))
 import Network.Wai.Handler.Warp (Port)
 
@@ -37,7 +41,14 @@ instance Show RequestMatcher where
   show = const "RequestMatcher"
 
 -- TODO: include status and junk
-type FakeResponse = LT.Text
+data FakeResponse = FakeResponse { _responseStatus  :: Status
+                                 , _responseBody    :: LT.Text
+                                 , _responseHeaders :: [(LT.Text, LT.Text)] } deriving (Show, Eq)
+
+makeClassy ''FakeResponse
+
+instance Default FakeResponse where
+  def = FakeResponse status200 empty empty
 
 -- TODO: more responses
 data CannedResponse = ReturnsSequence (NE.T [] FakeResponse) |

@@ -13,6 +13,7 @@ import Web.Scotty ( Options(..)
                   , ScottyM
                   , request
                   , text
+                  , header
                   , status
                   , notFound
                   , scottyOpts)
@@ -50,4 +51,7 @@ respondNotFound :: ActionM ()
 respondNotFound = status notFound404
 
 respondSuccess :: FakeResponse -> ActionM ()
-respondSuccess resp = status ok200 >> text resp
+respondSuccess resp = do status          $ resp ^. responseStatus
+                         mapM_ setStatus $ resp ^. responseHeaders
+                         text            $ resp ^. responseBody
+  where setStatus = uncurry header
