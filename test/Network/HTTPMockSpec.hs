@@ -6,7 +6,10 @@ import ClassyPrelude
 import Control.Lens
 import Data.Default
 import Network.HTTP.Types (Method)
-import Network.Http.Client (get)
+import Network.Http.Client ( get
+                           , post
+                           , emptyBody
+                           , concatHandler')
 
 import Network.HTTPMock
 import Network.HTTPMock.Utils
@@ -21,16 +24,43 @@ spec = do
       resetRecorder mocker `shouldHaveSameRecordedRequests` mocker
 
   describe "withMocker" $ do
-    let startingMocker = def :: HTTPMocker
-    --it "mocks requests" $ withMocker startingMocker $ \mockerR -> do
-    it "records requests" $ withMocker startingMocker $ \mockerR -> do
-      get_ "http://127.0.0.1:4568/foo/bar"
-      mockerR `shouldHaveRecordedRequest` ("GET", "/foo/bar")
+    it "mocks requests" $ withMocker matchPathMocker $ \mockerR -> do
+      getBody url `shouldReturn` "fake-response"
 
+    it "mocks sequences" $ withMocker sequenceMocker $ \mockerR -> do
+      replicateM 3 (getBody url) `shouldReturn` ["first-response", "second-response", "second-response"]
+
+    it "handles non-GET requests too" $  withMocker matchMethodMocker $ \mockerR -> do
+      postReturningBody url `shouldReturn` "you sent a POST"
+
+    it "records requests" $ withMocker def $ \mockerR -> do
+      get_ url
+      mockerR `shouldHaveRecordedRequest` ("GET", "/foo/bar")
+    
+    it "records request to bogus paths" $ withMocker def $ \mockerR -> do
+      get_ "http://127.0.0.1:4568/bogus/path"
+      mockerR `shouldHaveRecordedRequest` ("GET", "/bogus/path")
+
+  where url = "http://127.0.0.1:4568/foo/bar"
+
+matchPathMocker :: HTTPMocker
+matchPathMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, AlwaysReturns "fake-response")
+  where fooMatcher = matchPath "/foo/bar"
+
+sequenceMocker :: HTTPMocker
+sequenceMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, ReturnsSequence $ "first-response" !: ["second-response"])
+  where fooMatcher = matchPath "/foo/bar"
+
+matchMethodMocker :: HTTPMocker
+matchMethodMocker = def & responder . fakedInteractions <>~ singleton (postMatcher, AlwaysReturns "you sent a POST")
+  where postMatcher = matchMethod "POST"
+
+getBody url = get url concatHandler'
+
+postReturningBody url = post url "application/json" emptyBody concatHandler'
 
 get_ url = get url discard
   where discard _ _ = return ()
-      
 
 type RequestSummary = (Method, Text)
 
