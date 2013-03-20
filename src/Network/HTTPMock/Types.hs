@@ -15,11 +15,13 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , HasHTTPMocker(..)
                               , HTTPMocker(..)
                               , Port
+                              , (!:)
                               , Request(..)) where
 
 import ClassyPrelude hiding (show)
 import Data.Default
 import qualified Data.NonEmpty as NE
+import Data.NonEmpty ((!:))
 import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
