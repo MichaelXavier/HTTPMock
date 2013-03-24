@@ -19,10 +19,11 @@ library
   hs-source-dirs:      src
   exposed-modules:     Network.HTTPMock
                        Network.HTTPMock.Types
-  other-modules        Network.HTTPMock.InteractionsSpec
+                       Network.HTTPMock.Expectations
   build-depends:       base           == 4.6.*,
                        data-default,
                        http-types,
+                       hspec == 1.*,
                        network,
                        classy-prelude == 0.*,
                        lens           == 3.*,

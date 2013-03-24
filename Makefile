@@ -1,6 +1,7 @@
 CABAL=cabal-dev
 EXPORTS=PATH=$$PATH:cabal-dev/bin
 CONFIG_OPTS=
+.PHONY: test
 
 all: build
 
@@ -22,9 +23,9 @@ configure: httpmock.cabal install_dependencies
 install_dependencies:
 	$(CABAL) install --only-dependencies
 
-test: configure_tests
-	PATH=$$PATH:cabal-dev/bin $(CABAL) build 
-	$(CABAL) test
+test:
+	PATH=$$PATH:cabal-dev/bin $(CABAL) build
+	$(CABAL) test --show-details=always
 
 configure_tests:
 	$(CABAL) configure --enable-tests $(CONFIG_OPTS)
