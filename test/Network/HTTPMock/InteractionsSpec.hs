@@ -6,11 +6,11 @@ import ClassyPrelude
 import Data.Default
 import Control.Lens
 
-import Test.Hspec
-
 import Network.HTTPMock.Types
-import Network.HTTPMock.SpecHelper
 import Network.HTTPMock.Interactions
+
+import Network.HTTPMock.SpecHelper
+import Test.Hspec
 
 spec :: Spec
 spec = do

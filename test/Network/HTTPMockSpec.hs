@@ -6,7 +6,6 @@ import ClassyPrelude
 import Data.Default
 
 import Network.HTTPMock
-import Network.HTTPMock.Expectations
 
 import Network.HTTPMock.SpecHelper
 import Test.Hspec

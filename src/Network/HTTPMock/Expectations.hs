@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 module Network.HTTPMock.Expectations ( RequestSummary
                                      , Method
+                                     , summarizeRequests
                                      , shouldBeOnlyRequestsBy
                                      , shouldBeRequestedBy
                                      , shouldBeRequestedOnceBy

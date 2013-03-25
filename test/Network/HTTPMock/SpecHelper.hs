@@ -1,6 +1,23 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Network.HTTPMock.SpecHelper where
+module Network.HTTPMock.SpecHelper ( okFakeResponse
+                                   , matchPathMocker
+                                   , sequenceMocker
+                                   , matchMethodMocker
+                                   , getBody
+                                   , postReturningBody
+                                   , get_
+                                   , shouldHaveSameRecordedRequests
+                                   , postResponse
+                                   , firstResponse
+                                   , secondResponse
+                                   , yep
+                                   , returnsSequence
+                                   , responseAfterTimes
+                                   , mockerAfterTimes
+                                   , req
+                                   , reqMatcher
+                                   , module Network.HTTPMock.Expectations) where
 
 import Prelude (last)
 import ClassyPrelude
@@ -22,6 +39,7 @@ import Network.Socket (SockAddr(SockAddrUnix))
 
 import Network.HTTPMock
 import Network.HTTPMock.Interactions (getResponse)
+import Network.HTTPMock.Expectations
 import Network.HTTPMock.Utils
 
 import Test.Hspec
@@ -48,26 +66,10 @@ postReturningBody url = post url "application/json" emptyBody concatHandler'
 get_ url = get url discard
   where discard _ _ = return ()
 
-type RequestSummary = (Method, Text)
-
 shouldHaveSameRecordedRequests :: HTTPMocker -> HTTPMocker -> Expectation
 shouldHaveSameRecordedRequests a b = aReqs `shouldBe` bReqs
   where aReqs = summarizeRequests a
         bReqs = summarizeRequests b
-
-summarizeRequests :: HTTPMocker -> Seq RequestSummary
-summarizeRequests mocker = map extractRequestSummary $ mocker ^. recordedRequests -- see if we can use mapped instead
-
-shouldHaveRecordedRequest :: IORef HTTPMocker -> RequestSummary -> Expectation
-shouldHaveRecordedRequest mockerR summary = do mocker <- readIORef mockerR
-                                               let summarized = summarizeRequests mocker
-                                               elem summary summarized `shouldBe` True
-
-
-extractRequestSummary :: Request -> RequestSummary
-extractRequestSummary req = (meth, joinedPath)
-  where meth       = requestMethod req
-        joinedPath = requestPath req
 
 postResponse :: FakeResponse
 postResponse = okFakeResponse "you sent a POST"

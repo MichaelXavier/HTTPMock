@@ -2,15 +2,19 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                httpmock
-version:             0.0.0.0
+version:             0.0.0.1
 synopsis:            In-process HTTP server for testing HTTP client libraries
--- description:         
+description:         
+  This package provides a tool to stub out an HTTP server in-process for
+  testing HTTP client libraries. HTTPMock can send fake responses back to the
+  client and record all requests made to it. It also offers some helpful tools
+  for writing succinct assertions using Hspec.
 homepage:            https://github.com/MichaelXavier/HTTPMock
 license:             MIT
 license-file:        LICENSE
 author:              Michael Xavier
 maintainer:          michael@michaelxavier.net
--- copyright:           
+copyright:           Copyright (c) Michael Xavier 2013
 category:            Network
 build-type:          Simple
 cabal-version:       >=1.8
