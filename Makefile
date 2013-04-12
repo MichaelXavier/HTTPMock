@@ -23,7 +23,7 @@ configure: httpmock.cabal install_dependencies
 install_dependencies:
 	$(CABAL) install --only-dependencies
 
-test:
+test: configure_tests
 	PATH=$$PATH:cabal-dev/bin $(CABAL) build
 	$(CABAL) test --show-details=always
 
