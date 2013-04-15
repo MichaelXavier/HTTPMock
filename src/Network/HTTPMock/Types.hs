@@ -17,7 +17,7 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , HTTPMocker(..)
                               , Port
                               , (!:)
-                              , Status(..)
+                              , module Network.HTTP.Types.Status
                               , Request(..)) where
 
 import ClassyPrelude hiding (show)
@@ -27,9 +27,9 @@ import Data.NonEmpty ((!:))
 import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
--- TODO: rexport Request
-import Network.HTTP.Types ( Status(..)
-                          , status200)
+-- TODO: just reexport Network.HTTP.Types.Status
+import Network.HTTP.Types.Status ( Status(..)
+                                 , status200)
 import Network.Wai (Request(..))
 import Network.Wai.Handler.Warp (Port)
 

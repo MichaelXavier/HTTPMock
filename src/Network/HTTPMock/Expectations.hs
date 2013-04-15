@@ -6,14 +6,17 @@ module Network.HTTPMock.Expectations ( RequestSummary
                                      , shouldBeRequestedBy
                                      , shouldBeRequestedOnceBy
                                      , shouldMatchRequestsMadeBy
+                                     , shouldMakeRequestWithHeader
                                      , shouldMatchOneRequestMadeBy) where
 
 import ClassyPrelude
 import Control.Lens
+import Data.CaseInsensitive (mk)
 import Network.HTTP.Types (Method)
 
 import Network.HTTPMock.Types
-import Network.HTTPMock.Utils (requestPath)
+import Network.HTTPMock.Utils ( requestPath
+                              , requestHeaders)
 
 import Test.Hspec ( Expectation
                   , shouldBe)
@@ -42,6 +45,14 @@ shouldMatchRequestsMadeBy count pred action = do
 
 shouldMatchOneRequestMadeBy :: (Request -> Bool) -> IO HTTPMocker -> Expectation
 shouldMatchOneRequestMadeBy = shouldMatchRequestsMadeBy 1
+
+shouldMakeRequestWithHeader :: (ByteString, ByteString) -> IO HTTPMocker -> Expectation
+shouldMakeRequestWithHeader (key, val) = shouldMatchOneRequestMadeBy pred
+  where pred = (== Just val) . lookupHeader key
+
+lookupHeader :: ByteString -> Request -> Maybe ByteString
+lookupHeader key = lookup key' . requestHeaders
+  where key' = mk key
 
 ---- Helpers
 

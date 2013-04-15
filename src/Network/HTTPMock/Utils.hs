@@ -1,7 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTPMock.Utils ( pathInfoToText
-                              , requestPath) where
+                              , requestPath
+                              , requestHeaders) where
 
 import ClassyPrelude
 
