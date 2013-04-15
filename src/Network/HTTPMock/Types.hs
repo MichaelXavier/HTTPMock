@@ -28,8 +28,7 @@ import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
 -- TODO: just reexport Network.HTTP.Types.Status
-import Network.HTTP.Types.Status ( Status(..)
-                                 , status200)
+import Network.HTTP.Types.Status
 import Network.Wai (Request(..))
 import Network.Wai.Handler.Warp (Port)
 

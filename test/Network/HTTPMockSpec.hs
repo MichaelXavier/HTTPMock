@@ -27,9 +27,11 @@ spec = do
     it "handles non-GET requests too" $ withMocker_ matchMethodMocker $ do
       postReturningBody url `shouldReturn` "you sent a POST"
 
-    it "records requests" $ ("GET", "/foo/bar") `shouldBeRequestedOnceBy`
-                            (runWithMocker_ def $ get_ url)
+    it "records requests" $
+      ("GET", "/foo/bar") `shouldBeRequestedOnceBy`
+        (fst <$> (runWithMocker_ def $ get_ url))
     
-    it "records request to bogus paths" $ ("GET", "/bogus/path") `shouldBeRequestedOnceBy`
-                                          (runWithMocker_ def $ get_ "http://127.0.0.1:4568/bogus/path")
+    it "records request to bogus paths" $
+      ("GET", "/bogus/path") `shouldBeRequestedOnceBy`
+        (fst <$> (runWithMocker_ def $ get_ "http://127.0.0.1:4568/bogus/path"))
   where url = "http://127.0.0.1:4568/foo/bar"

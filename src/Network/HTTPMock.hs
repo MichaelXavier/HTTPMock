@@ -15,20 +15,22 @@ import Network.HTTPMock.Types
 import Network.HTTPMock.WebServers.Common
 import qualified Network.HTTPMock.WebServers.Scotty as S
 
-runWithMocker :: HTTPMocker -> (IORef HTTPMocker -> IO ()) -> IO HTTPMocker
+--TODO: check order to be consistent with State
+runWithMocker :: HTTPMocker -> (IORef HTTPMocker -> IO a) -> IO (HTTPMocker, a)
 runWithMocker mocker action = do mockerR <- newIORef mocker
                                  tid <- startServer mockerR S.startServer
-                                 action mockerR `finally` killServer tid
-                                 readIORef mockerR
+                                 res <- action mockerR `finally` killServer tid
+                                 mocker' <- readIORef mockerR
+                                 return (mocker', res)
 
-runWithMocker_ :: HTTPMocker -> IO () -> IO HTTPMocker
+runWithMocker_ :: HTTPMocker -> IO a -> IO (HTTPMocker, a)
 runWithMocker_ mocker action = runWithMocker mocker $ const action
 
-withMocker :: HTTPMocker -> (IORef HTTPMocker -> IO ()) -> IO ()
-withMocker mocker = void . runWithMocker mocker
+withMocker :: HTTPMocker -> (IORef HTTPMocker -> IO a) -> IO a
+withMocker mocker action = snd <$> runWithMocker mocker action
 
-withMocker_ :: HTTPMocker -> IO () -> IO ()
-withMocker_ mocker action = withMocker mocker $ const action
+withMocker_ :: HTTPMocker -> IO a -> IO a
+withMocker_ mocker action = snd <$> runWithMocker_ mocker action
 
 resetRecorder :: HTTPMocker -> HTTPMocker
 resetRecorder mocker = mocker & recordedRequests .~ empty
