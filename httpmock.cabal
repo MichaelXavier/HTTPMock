@@ -30,15 +30,16 @@ library
                        Network.HTTPMock.Utils
                        Network.HTTPMock.WebServers.Common
                        Network.HTTPMock.WebServers.Scotty
-  build-depends:       base           == 4.6.*,
+  build-depends:       base             == 4.6.*,
                        data-default,
                        http-types,
-                       hspec == 1.*,
+                       hspec            == 1.*,
                        network,
-                       classy-prelude == 0.*,
-                       lens           == 3.*,
+                       case-insensitive == 1.*,
+                       classy-prelude   == 0.*,
+                       lens             == 3.*,
                        non-empty,
-                       scotty         == 0.*,
+                       scotty           == 0.*,
                        text,
                        wai,
                        warp
@@ -56,6 +57,7 @@ test-suite spec
                        network,
                        non-empty,
                        scotty             == 0.*,
+                       case-insensitive   == 1.*,
                        classy-prelude     == 0.*,
                        lens               == 3.*,
                        scotty             == 0.*,
