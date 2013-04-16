@@ -1,9 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Network.HTTPMock.Interactions (getResponse) where
 
 import ClassyPrelude
 import Control.Lens
+import Debug.Trace (traceShow)
 import Data.NonEmpty ((!:))
 import qualified Data.NonEmpty as NE
 

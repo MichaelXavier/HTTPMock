@@ -40,6 +40,7 @@ shouldBeRequestedOnceBy = shouldBeRequestedBy 1
 shouldMatchRequestsMadeBy :: Int -> (Request -> Bool) -> IO HTTPMocker -> Expectation
 shouldMatchRequestsMadeBy count pred action = do
   mocker <- action
+  print $ summarizeRequests mocker
   let matching = filter pred $ getRequests mocker
   length matching `shouldBe` count
 

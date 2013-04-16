@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Network.HTTPMock.WebServers.Scotty (startServer) where
 
 import ClassyPrelude
@@ -37,6 +38,7 @@ scottyRoutes :: IORef HTTPMocker -> ScottyM ()
 scottyRoutes mockerR = do
   notFound $ do
     mocker <- liftIO $ readIORef mockerR 
+    liftIO $ putStrLn "catchall match"
     req    <- request
     handleMatch mockerR req
 
