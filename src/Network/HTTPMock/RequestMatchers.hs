@@ -1,6 +1,6 @@
-module Network.HTTPMock.Matchers ( matchPath
-                                 , matchMethod
-                                 , matchPathAndMethod) where
+module Network.HTTPMock.RequestMatchers ( matchPath
+                                        , matchMethod
+                                        , matchPathAndMethod) where
 
 import Prelude (and)
 import ClassyPrelude

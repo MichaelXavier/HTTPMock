@@ -7,12 +7,12 @@ module Network.HTTPMock ( module Network.HTTPMock.Types
                         , withMocker
                         , withMocker_
                         , resetRecorder
-                        , module Network.HTTPMock.Matchers) where
+                        , module Network.HTTPMock.RequestMatchers) where
 
 import ClassyPrelude
 import Control.Lens
 
-import Network.HTTPMock.Matchers
+import Network.HTTPMock.RequestMatchers
 import Network.HTTPMock.Types
 import Network.HTTPMock.WebServers.Common
 import qualified Network.HTTPMock.WebServers.Scotty as S

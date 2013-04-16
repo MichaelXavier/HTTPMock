@@ -26,7 +26,7 @@ library
                        Network.HTTPMock.Types
 
   other-modules:       Network.HTTPMock.Interactions
-                       Network.HTTPMock.Matchers
+                       Network.HTTPMock.RequestMatchers
                        Network.HTTPMock.Utils
                        Network.HTTPMock.WebServers.Common
                        Network.HTTPMock.WebServers.Scotty
