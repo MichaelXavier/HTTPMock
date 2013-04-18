@@ -4,6 +4,10 @@
 module Network.HTTPMock ( module Network.HTTPMock.Types
                         , runWithMocker
                         , runWithMocker_
+
+                        , matchResultingMocker
+                        , matchResultFromMocker
+
                         , withMocker
                         , withMocker_
                         , resetRecorder
@@ -11,6 +15,7 @@ module Network.HTTPMock ( module Network.HTTPMock.Types
 
 import ClassyPrelude
 import Control.Lens
+import Control.Rematch ( expect)
 
 import Network.HTTPMock.RequestMatchers
 import Network.HTTPMock.Types
@@ -37,3 +42,11 @@ withMocker_ mocker action = withMocker mocker $ const action
 
 resetRecorder :: HTTPMocker -> HTTPMocker
 resetRecorder mocker = mocker & recordedRequests .~ empty
+
+matchResultingMocker mocker action mockerMatcher = do
+  (mocker', _) <- runWithMocker_ mocker action
+  expect mocker' mockerMatcher
+
+matchResultFromMocker mocker action resultMatcher = do
+  (_, result) <- runWithMocker_ mocker action
+  expect result resultMatcher

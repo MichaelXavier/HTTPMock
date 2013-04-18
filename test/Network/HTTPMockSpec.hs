@@ -3,6 +3,7 @@
 module Network.HTTPMockSpec (spec) where
 
 import ClassyPrelude
+import Control.Rematch
 import Data.Default
 
 import Network.HTTPMock
@@ -25,7 +26,7 @@ spec = do
       replicateM 3 (getBody url) `shouldReturn` ["first-response", "second-response", "second-response"]
 
     it "handles non-GET requests too" $ withMocker_ matchMethodMocker $ do
-      postReturningBody url `shouldReturn` "you sent a POST"
+      doPost `shouldReturn` "you sent a POST"
 
     it "records requests" $
       ("GET", "/foo/bar") `shouldBeRequestedOnceBy`
@@ -34,4 +35,14 @@ spec = do
     it "records request to bogus paths" $
       ("GET", "/bogus/path") `shouldBeRequestedOnceBy`
         (fst <$> (runWithMocker_ def $ get_ "http://127.0.0.1:4568/bogus/path"))
-  where url = "http://127.0.0.1:4568/foo/bar"
+
+  describe "matchResultFromMocker" $ do
+    it "matches on the result of the action using the mocker" $
+      matchResultFromMocker matchMethodMocker doPost $ is "you sent a POST"
+
+  describe "matchResultingMocker" $ do
+    it "matches against the modified mocker" $
+      matchResultingMocker matchMethodMocker doPost $ allRequestsMatch [("POST", "/foo/barz")]
+
+  where url    = "http://127.0.0.1:4568/foo/bar"
+        doPost = postReturningBody url

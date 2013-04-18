@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 module Network.HTTPMock.Expectations ( RequestSummary
                                      , Method
+                                     , allRequestsMatch
                                      , summarizeRequests
                                      , shouldBeOnlyRequestsBy
                                      , shouldBeRequestedBy
@@ -11,6 +12,8 @@ module Network.HTTPMock.Expectations ( RequestSummary
 
 import ClassyPrelude
 import Control.Lens
+import Control.Rematch ( Matcher(..)
+                       , standardMismatch)
 import Data.CaseInsensitive (mk)
 import Network.HTTP.Types (Method)
 
@@ -22,6 +25,12 @@ import Test.Hspec ( Expectation
                   , shouldBe)
 
 type RequestSummary = (Method, Text)
+
+allRequestsMatch :: [RequestSummary] -> Matcher HTTPMocker
+allRequestsMatch summaries = Matcher pred msg mismatchMsg
+  where msg         = "made requests " ++ show summaries
+        mismatchMsg = ("but requested " ++) . show . summarizeRequests
+        pred        = (summaries ==) . summarizeRequests
 
 shouldBeOnlyRequestsBy :: [RequestSummary] -> IO HTTPMocker -> Expectation
 shouldBeOnlyRequestsBy expected action = do
