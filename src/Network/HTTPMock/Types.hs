@@ -17,6 +17,8 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , HTTPMocker(..)
                               , Port
                               , (!:)
+                              , Header(..)
+                              , RequestHeaders(..)
                               , module Network.HTTP.Types.Status
                               , Request(..)) where
 
@@ -28,6 +30,8 @@ import qualified Data.Text.Lazy as LT
 import Text.Show (Show(..)) -- why?
 import Control.Lens
 -- TODO: just reexport Network.HTTP.Types.Status
+import Network.HTTP.Types ( Header(..)
+                          , RequestHeaders(..))
 import Network.HTTP.Types.Status
 import Network.Wai (Request(..))
 import Network.Wai.Handler.Warp (Port)

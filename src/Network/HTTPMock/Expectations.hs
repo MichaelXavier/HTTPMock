@@ -1,7 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 module Network.HTTPMock.Expectations ( RequestSummary
                                      , Method
+
                                      , allRequestsMatch
+                                     , hasRequestMatching
+                                     , hasNumberOfRequestMatching
+                                     , hasRequestWithHeader
+
                                      , summarizeRequests
                                      , shouldBeOnlyRequestsBy
                                      , shouldBeRequestedBy
@@ -31,6 +36,25 @@ allRequestsMatch summaries = Matcher pred msg mismatchMsg
   where msg         = "made requests " ++ show summaries
         mismatchMsg = ("but requested " ++) . show . summarizeRequests
         pred        = (summaries ==) . summarizeRequests
+
+hasRequestMatching :: RequestSummary -> Matcher HTTPMocker
+hasRequestMatching summary = Matcher pred msg mismatchMsg
+  where msg         = "made request " ++ show summary
+        mismatchMsg = ("but requested " ++) . show . summarizeRequests
+        pred        = elem summary . summarizeRequests
+
+hasNumberOfRequestMatching :: Int -> RequestSummary -> Matcher HTTPMocker
+hasNumberOfRequestMatching count summary = Matcher pred msg mismatchMsg
+  where msg         = "made request " ++ show summary ++ " " ++ show count ++ " times"
+        mismatchMsg = ("but requested " ++) . show . summarizeRequests
+        pred        = (== count) . length . filter (== summary) . summarizeRequests
+
+hasRequestWithHeader :: Header -> Matcher HTTPMocker
+hasRequestWithHeader (k,v) = Matcher pred msg mismatchMsg
+  where msg         = "made request with header" ++ show (k,v)
+        mismatchMsg = ("but headers were " ++) . show . summarizeHeaders
+        pred        = any hasHeader . summarizeHeaders
+        hasHeader   = (== Just v) . lookup k
 
 shouldBeOnlyRequestsBy :: [RequestSummary] -> IO HTTPMocker -> Expectation
 shouldBeOnlyRequestsBy expected action = do
@@ -68,6 +92,9 @@ lookupHeader key = lookup key' . requestHeaders
 
 summarizeRequests :: HTTPMocker -> [RequestSummary]
 summarizeRequests = map extractRequestSummary . getRequests
+
+summarizeHeaders :: HTTPMocker -> [RequestHeaders]
+summarizeHeaders = map requestHeaders . getRequests
 
 getRequests :: HTTPMocker -> [Request]
 getRequests mocker = toList $ mocker ^. recordedRequests

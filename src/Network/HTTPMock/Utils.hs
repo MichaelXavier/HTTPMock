@@ -6,7 +6,9 @@ module Network.HTTPMock.Utils ( pathInfoToText
 
 import ClassyPrelude
 
-import Network.HTTPMock.Types (Request(..))
+import Network.HTTPMock.Types (Request(..)
+                              , RequestHeaders(..)
+                              , Header(..))
 
 pathInfoToText :: [Text] -> Text
 pathInfoToText [] = "/"
