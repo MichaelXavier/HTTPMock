@@ -42,7 +42,7 @@ spec = do
 
   describe "matchResultingMocker" $ do
     it "matches against the modified mocker" $
-      matchResultingMocker matchMethodMocker doPost $ allRequestsMatch [("POST", "/foo/barz")]
+      matchResultingMocker matchMethodMocker doPost $ allRequestsMatch [("POST", "/foo/bar")]
 
   where url    = "http://127.0.0.1:4568/foo/bar"
         doPost = postReturningBody url
