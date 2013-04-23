@@ -20,11 +20,13 @@ import Control.Lens
 import Control.Rematch ( Matcher(..)
                        , standardMismatch)
 import Data.CaseInsensitive (mk)
+import Data.Conduit ( ($$)
+                    , runResourceT)
+import Data.Conduit.List (consume)
 import Network.HTTP.Types (Method)
 
 import Network.HTTPMock.Types
-import Network.HTTPMock.Utils ( requestPath
-                              , requestHeaders)
+import Network.HTTPMock.Utils (requestPath)
 
 import Test.Hspec ( Expectation
                   , shouldBe)
@@ -52,9 +54,15 @@ hasNumberOfRequestMatching count summary = Matcher pred msg mismatchMsg
 hasRequestWithHeader :: Header -> Matcher HTTPMocker
 hasRequestWithHeader (k,v) = Matcher pred msg mismatchMsg
   where msg         = "made request with header" ++ show (k,v)
-        mismatchMsg = ("but headers were " ++) . show . summarizeHeaders
+        mismatchMsg = ("but headers were " ++) . unlines . map show . summarizeHeaders
         pred        = any hasHeader . summarizeHeaders
         hasHeader   = (== Just v) . lookup k
+
+hasRequestWithBody :: ByteString -> Matcher HTTPMocker
+hasRequestWithBody body = Matcher pred msg mismatchMsg
+  where msg         = "made request with body" ++ show body
+        mismatchMsg = ("but bodies were " ++) . unlines . map show . summarizeBodies
+        pred        = any (== body) . summarizeBodies
 
 shouldBeOnlyRequestsBy :: [RequestSummary] -> IO HTTPMocker -> Expectation
 shouldBeOnlyRequestsBy expected action = do
@@ -85,7 +93,7 @@ shouldMakeRequestWithHeader (key, val) = shouldMatchOneRequestMadeBy pred
   where pred = (== Just val) . lookupHeader key
 
 lookupHeader :: ByteString -> Request -> Maybe ByteString
-lookupHeader key = lookup key' . requestHeaders
+lookupHeader key = lookup key' . _requestHeaders
   where key' = mk key
 
 ---- Helpers
@@ -94,12 +102,15 @@ summarizeRequests :: HTTPMocker -> [RequestSummary]
 summarizeRequests = map extractRequestSummary . getRequests
 
 summarizeHeaders :: HTTPMocker -> [RequestHeaders]
-summarizeHeaders = map requestHeaders . getRequests
+summarizeHeaders = map _requestHeaders . getRequests
+
+summarizeBodies :: HTTPMocker -> [ByteString]
+summarizeBodies = map _requestBody . getRequests
 
 getRequests :: HTTPMocker -> [Request]
 getRequests mocker = toList $ mocker ^. recordedRequests
 
 extractRequestSummary :: Request -> RequestSummary
 extractRequestSummary req = (meth, joinedPath)
-  where meth       = requestMethod req
+  where meth       = req ^. requestMethod 
         joinedPath = requestPath req

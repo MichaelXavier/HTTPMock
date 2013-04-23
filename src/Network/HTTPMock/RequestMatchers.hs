@@ -23,4 +23,4 @@ matchPath' :: Text -> Request -> Bool
 matchPath' path = (== path) . requestPath
 
 matchMethod' :: Method -> Request -> Bool
-matchMethod' meth = (== meth) . requestMethod
+matchMethod' meth = (== meth) . _requestMethod

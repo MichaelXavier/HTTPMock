@@ -33,9 +33,9 @@ import Network.HTTP.Types ( Method
 import Network.Http.Client ( get
                            , post
                            , emptyBody
+                           , inputStreamBody
                            , concatHandler')
-import Network.Wai (RequestBodyLength(KnownLength))
-import Network.Socket (SockAddr(SockAddrUnix))
+import System.IO.Streams (fromLazyByteString)
 
 import Network.HTTPMock
 import Network.HTTPMock.Interactions (getResponse)
@@ -61,7 +61,9 @@ matchMethodMocker = def & responder . fakedInteractions <>~ singleton (postMatch
 
 getBody url = get url concatHandler'
 
-postReturningBody url = post url "application/json" emptyBody concatHandler'
+postReturningBody url = do
+  stream <- fromLazyByteString "POSTBODY"
+  post url "application/json" (inputStreamBody stream) concatHandler'
 
 get_ url = get url discard
   where discard _ _ = return ()
@@ -84,24 +86,19 @@ yep :: FakeResponse
 yep = okFakeResponse "yep"
 
 reqMatcher :: RequestMatcher
-reqMatcher = RequestMatcher (\reqToCheck -> "/foo" == rawPathInfo reqToCheck)
+reqMatcher = RequestMatcher (\reqToCheck -> "/foo" == reqToCheck ^. rawPathInfo)
 
 req :: Request
 req = Request {
-    requestMethod     = "GET"
-  , httpVersion       = http11
-  , rawPathInfo       = "/foo"
-  , rawQueryString    = "?wat=true"
-  , serverName        = "example.com"
-  , serverPort        = 4568
-  , requestHeaders    = []
-  , isSecure          = False
-  , remoteHost        = SockAddrUnix "doesntmatter"
-  , pathInfo          = ["foo"]
-  , queryString       = [("wat", Just "true")]
-  , requestBody       = undefined
-  , vault             = undefined
-  , requestBodyLength = KnownLength 0
+  _requestMethod     = "GET"
+, _rawPathInfo       = "/foo"
+, _rawQueryString    = "?wat=true"
+, _serverName        = "example.com"
+, _serverPort        = 4568
+, _requestHeaders    = []
+, _pathInfo          = ["foo"]
+, _queryString       = [("wat", Just "true")]
+, _requestBody       = "FAKEBODY"
 }
 
 returnsSequence :: CannedResponse

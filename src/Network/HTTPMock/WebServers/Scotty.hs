@@ -5,19 +5,23 @@ module Network.HTTPMock.WebServers.Scotty (startServer) where
 import ClassyPrelude
 import Control.Lens
 import Data.Default
+import Data.Conduit ( runResourceT
+                    , ($$))
+import Data.Conduit.List (consume)
 import Data.Maybe (maybe)
 import Network.HTTP.Types ( Method(..)
                           , notFound404
                           , ok200)
+import qualified Web.Scotty as S
 import Web.Scotty ( Options(..)
                   , ActionM
                   , ScottyM
-                  , request
                   , text
                   , header
                   , status
                   , notFound
                   , scottyOpts)
+import qualified Network.Wai as W
 import Network.Wai.Handler.Warp ( Settings(settingsPort)
                                 , defaultSettings)
 
@@ -38,8 +42,7 @@ scottyRoutes :: IORef HTTPMocker -> ScottyM ()
 scottyRoutes mockerR = do
   notFound $ do
     mocker <- liftIO $ readIORef mockerR 
-    liftIO $ putStrLn "catchall match"
-    req    <- request
+    req <- liftIO . convertToRequest =<< S.request
     handleMatch mockerR req
 
 -- use of mockerR doesn't make sense now, but state will mutate in getResponse eventually
@@ -57,3 +60,21 @@ respondSuccess resp = do status          $ resp ^. responseStatus
                          mapM_ setStatus $ resp ^. responseHeaders
                          text            $ resp ^. responseBody
   where setStatus = uncurry header
+
+convertToRequest :: W.Request -> IO Request
+convertToRequest r = do body <- consumeBody r
+                        return $ Request (W.requestMethod r)
+                                         (W.rawPathInfo r)
+                                         (W.rawQueryString r)
+                                         (W.serverName r)
+                                         (W.serverPort r)
+                                         (W.requestHeaders r)
+                                         (W.isSecure r)
+                                         (W.pathInfo r)
+                                         (W.queryString r)
+                                         body
+                                    
+--TODO: cleanup
+consumeBody :: W.Request -> IO ByteString
+consumeBody r = do chunks <- runResourceT $ W.requestBody r $$ consume
+                   return $ concat chunks

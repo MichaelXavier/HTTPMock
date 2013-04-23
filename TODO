@@ -1,1 +1,2 @@
+* log custom Request type, so that it can record the post body without having to run in IO later
 * add a "fixtures" file to test for common combinators

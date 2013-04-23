@@ -20,7 +20,8 @@ module Network.HTTPMock.Types ( HasRequestMatcher(..)
                               , Header(..)
                               , RequestHeaders(..)
                               , module Network.HTTP.Types.Status
-                              , Request(..)) where
+                              , Request(..)
+                              , HasRequest(..)) where
 
 import ClassyPrelude hiding (show)
 import Data.Default
@@ -31,10 +32,27 @@ import Text.Show (Show(..)) -- why?
 import Control.Lens
 -- TODO: just reexport Network.HTTP.Types.Status
 import Network.HTTP.Types ( Header(..)
+                          , Method
                           , RequestHeaders(..))
 import Network.HTTP.Types.Status
-import Network.Wai (Request(..))
+import Network.HTTP.Types.URI (Query)
 import Network.Wai.Handler.Warp (Port)
+
+--TODO: pare down
+data Request = Request {
+  _requestMethod  :: Method
+, _rawPathInfo    :: ByteString
+, _rawQueryString :: ByteString
+, _serverName     :: ByteString
+, _serverPort     :: Int
+, _requestHeaders :: RequestHeaders
+, _isSecure       :: Bool
+, _pathInfo       :: [Text]
+, _queryString    :: Query
+, _requestBody    :: ByteString
+} deriving (Show, Eq)
+
+makeClassy ''Request
 
 newtype RequestMatcher = RequestMatcher { _matcher :: Request -> Bool }
 

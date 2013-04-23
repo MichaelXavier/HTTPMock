@@ -1,8 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTPMock.Utils ( pathInfoToText
-                              , requestPath
-                              , requestHeaders) where
+                              , requestPath) where
 
 import ClassyPrelude
 
@@ -15,4 +14,4 @@ pathInfoToText [] = "/"
 pathInfoToText pieces = intercalate "/" (empty:pieces)
 
 requestPath :: Request -> Text
-requestPath = pathInfoToText . pathInfo
+requestPath = pathInfoToText . _pathInfo
