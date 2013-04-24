@@ -6,7 +6,7 @@ module Network.HTTPMock.Expectations ( RequestSummary
                                      , hasRequestMatching
                                      , hasNumberOfRequestMatching
                                      , hasRequestWithHeader
-                                     , hasRequestWithBody --SPECME
+                                     , hasRequestWithBody
 
                                      , summarizeRequests
                                      , shouldBeOnlyRequestsBy

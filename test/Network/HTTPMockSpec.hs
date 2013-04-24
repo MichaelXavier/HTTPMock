@@ -40,9 +40,20 @@ spec = do
     it "matches on the result of the action using the mocker" $
       matchResultFromMocker matchMethodMocker doPost $ is "you sent a POST"
 
+
   describe "matchResultingMocker" $ do
     it "matches against the modified mocker" $
       matchResultingMocker matchMethodMocker doPost $ allRequestsMatch [("POST", "/foo/bar")]
+
+  describe "hasRequestWithBody" $ do
+    it "matches the positive case" $ do
+      matchResultingMocker matchMethodMocker doPost $
+        hasRequestWithBody "POSTBODY"
+
+    it "matches the negative case" $ do
+      matchResultingMocker matchMethodMocker doPost $
+        isNot $ hasRequestWithBody "SOMETHINGELSE"
+      
 
   where url    = "http://127.0.0.1:4568/foo/bar"
         doPost = postReturningBody url
