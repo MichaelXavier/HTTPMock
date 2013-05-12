@@ -57,16 +57,14 @@ respondNotFound = status notFound404
 
 respondSuccess :: FakeResponse -> ActionM ()
 respondSuccess resp = do status          $ resp ^. responseStatus
-                         mapM_ setStatus $ resp ^. responseHeaders
+                         mapM_ setHeader $ resp ^. responseHeaders
                          text            $ resp ^. responseBody
-  where setStatus = uncurry header
+  where setHeader = uncurry header
 
 convertToRequest :: W.Request -> IO Request
 convertToRequest r = do body <- consumeBody r
                         return $ Request (W.requestMethod r)
-                                         (W.rawPathInfo r)
-                                         (W.rawQueryString r)
-                                         (W.serverName r)
+                                         (decodeUtf8 . W.serverName $ r)
                                          (W.serverPort r)
                                          (W.requestHeaders r)
                                          (W.isSecure r)

@@ -5,7 +5,9 @@ module Network.HTTPMock.SpecHelper ( okFakeResponse
                                    , sequenceMocker
                                    , matchMethodMocker
                                    , getBody
+                                   , deleteReturningBody
                                    , postReturningBody
+                                   , putReturningBody
                                    , get_
                                    , shouldHaveSameRecordedRequests
                                    , postResponse
@@ -19,7 +21,9 @@ module Network.HTTPMock.SpecHelper ( okFakeResponse
                                    , reqMatcher
                                    , module Network.HTTPMock.Expectations) where
 
-import Prelude (last)
+import Prelude ( last
+               , tail
+               , read)
 import ClassyPrelude
 import Control.Lens
 import Control.Monad (replicateM_)
@@ -28,12 +32,22 @@ import Control.Monad.Trans.State ( execState
                                  , state)
 import Data.Default
 import qualified Data.Text.Lazy as LT
-import Network.HTTP.Types ( Method
-                          , http11)
+import Network.URI ( parseURI
+                   , URIAuth(..)
+                   , URI(..))
+import Network.HTTP.Types ( http11)
 import Network.Http.Client ( get
-                           , post
+                           , Method(..)
                            , emptyBody
                            , inputStreamBody
+                           , openConnection
+                           , withConnection
+                           , http
+                           , setAccept
+                           , sendRequest
+                           , buildRequest
+                           , receiveResponse
+                           , debugHandler
                            , concatHandler')
 import System.IO.Streams (fromLazyByteString)
 
@@ -55,18 +69,53 @@ sequenceMocker :: HTTPMocker
 sequenceMocker = def & responder . fakedInteractions <>~ singleton (fooMatcher, ReturnsSequence $ firstResponse !: [secondResponse])
   where fooMatcher = matchPath "/foo/bar"
 
-matchMethodMocker :: HTTPMocker
-matchMethodMocker = def & responder . fakedInteractions <>~ singleton (postMatcher, AlwaysReturns postResponse)
-  where postMatcher = matchMethod "POST"
+matchMethodMocker :: ByteString -> HTTPMocker
+matchMethodMocker meth = def & responder . fakedInteractions <>~ singleton (methMatcher, AlwaysReturns postResponse)
+  where methMatcher = matchMethod meth
 
-getBody url = get url concatHandler'
+getBody url' = get url concatHandler'
+  where url = encodeUtf8 . pack $ url'
 
-postReturningBody url = do
+postReturningBody = requestReturningBody POST
+putReturningBody = requestReturningBody PUT
+deleteReturningBody = requestReturningBody DELETE
+
+--establish :: URI -> IO (Connection)
+establish u = openConnection host port
+  where
+    auth = case uriAuthority u of
+        Just x  -> x
+        Nothing -> URIAuth "" "localhost" ""
+
+    host = encodeUtf8 . pack . uriRegName $ auth
+    port = case uriPort auth of
+        ""  -> 80
+        _   -> read $ tail $ uriPort auth-- :: Word16
+
+path :: URI -> ByteString
+path u = case url of
+            ""  -> "/"
+            _   -> url
+  where
+    url = encodeUtf8 $! pack
+                     $! concat [uriPath u, uriQuery u, uriFragment u]
+
+requestReturningBody meth url = do
+  let uri = fromMaybe (error "uri parse error") $ parseURI url
   stream <- fromLazyByteString "POSTBODY"
-  post url "application/json" (inputStreamBody stream) concatHandler'
 
-get_ url = get url discard
+  withConnection (establish uri) $ \c -> do
+    q <- buildRequest $ do
+        http meth (path uri)
+        setAccept "application/json"
+
+    sendRequest c q $ inputStreamBody stream
+
+    receiveResponse c concatHandler'
+
+get_ url' = get url discard
   where discard _ _ = return ()
+        url = encodeUtf8 . pack $ url'
 
 shouldHaveSameRecordedRequests :: HTTPMocker -> HTTPMocker -> Expectation
 shouldHaveSameRecordedRequests a b = aReqs `shouldBe` bReqs
@@ -86,13 +135,11 @@ yep :: FakeResponse
 yep = okFakeResponse "yep"
 
 reqMatcher :: RequestMatcher
-reqMatcher = RequestMatcher (\reqToCheck -> "/foo" == reqToCheck ^. rawPathInfo)
+reqMatcher = RequestMatcher (\reqToCheck -> ["foo"] == reqToCheck ^. pathInfo)
 
 req :: Request
 req = Request {
   _requestMethod     = "GET"
-, _rawPathInfo       = "/foo"
-, _rawQueryString    = "?wat=true"
 , _serverName        = "example.com"
 , _serverPort        = 4568
 , _requestHeaders    = []

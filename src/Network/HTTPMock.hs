@@ -20,7 +20,7 @@ import Control.Rematch ( expect)
 import Network.HTTPMock.RequestMatchers
 import Network.HTTPMock.Types
 import Network.HTTPMock.WebServers.Common
-import qualified Network.HTTPMock.WebServers.Scotty as S
+import qualified Network.HTTPMock.WebServers.Snap as S
 
 --TODO: check order to be consistent with State
 runWithMocker :: Show a => HTTPMocker -> (IORef HTTPMocker -> IO a) -> IO (HTTPMocker, a)

@@ -30,6 +30,7 @@ library
                        Network.HTTPMock.Utils
                        Network.HTTPMock.WebServers.Common
                        Network.HTTPMock.WebServers.Scotty
+                       Network.HTTPMock.WebServers.Snap
   build-depends:       base             == 4.6.*,
                        data-default,
                        http-types,
@@ -41,7 +42,9 @@ library
                        lens             == 3.*,
                        non-empty,
                        rematch          == 0.*,
+                       -- deprecate?
                        scotty           == 0.*,
+                       snap             == 0.*,
                        text,
                        wai,
                        warp
@@ -55,7 +58,7 @@ test-suite spec
                        conduit,
                        http-types,
                        io-streams         == 1.*,
-                       http-streams       == 0.*,
+                       http-streams       >= 0.5.0.2 && < 1.0,
                        hspec              == 1.*,
                        hspec-expectations == 0.*,
                        network,
@@ -65,7 +68,9 @@ test-suite spec
                        classy-prelude     == 0.*,
                        lens               == 3.*,
                        rematch            == 0.*,
+                       -- deprecate?
                        scotty             == 0.*,
+                       snap               == 0.*,
                        text,
                        transformers,
                        wai,

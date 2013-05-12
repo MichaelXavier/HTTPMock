@@ -41,9 +41,7 @@ import Network.Wai.Handler.Warp (Port)
 --TODO: pare down
 data Request = Request {
   _requestMethod  :: Method
-, _rawPathInfo    :: ByteString
-, _rawQueryString :: ByteString
-, _serverName     :: ByteString
+, _serverName     :: Text
 , _serverPort     :: Int
 , _requestHeaders :: RequestHeaders
 , _isSecure       :: Bool
