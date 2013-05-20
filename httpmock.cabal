@@ -44,7 +44,7 @@ library
                        rematch          == 0.*,
                        -- deprecate?
                        scotty           == 0.*,
-                       snap             == 0.*,
+                       snap             >= 0.12.0 && < 1.0,
                        text,
                        wai,
                        warp
@@ -58,7 +58,7 @@ test-suite spec
                        conduit,
                        http-types,
                        io-streams         == 1.*,
-                       http-streams       >= 0.5.0.2 && < 1.0,
+                       http-streams       >= 0.6.0.1 && < 1.0,
                        hspec              == 1.*,
                        hspec-expectations == 0.*,
                        network,
@@ -70,7 +70,7 @@ test-suite spec
                        rematch            == 0.*,
                        -- deprecate?
                        scotty             == 0.*,
-                       snap               == 0.*,
+                       snap             >= 0.12.0 && < 1.0,
                        text,
                        transformers,
                        wai,

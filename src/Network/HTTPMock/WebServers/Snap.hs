@@ -38,9 +38,7 @@ appInit mr = makeSnaplet "mocker" "HTTPMocker context" Nothing $ do
 handleMatch :: IORef HTTPMocker -> Request -> Handler App App ()
 handleMatch mr req = do
   mocker <- liftIO $ readIORef mr
-  liftIO $ print req
   let (mResponse, mocker') = getResponse req mocker
-  liftIO $ print mResponse
   liftIO $ writeIORef mr mocker'
   maybe respondNotFound respondSuccess mResponse
 
