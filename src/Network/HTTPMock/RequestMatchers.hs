@@ -1,4 +1,5 @@
 module Network.HTTPMock.RequestMatchers ( matchPath
+                                        , matchEverything
                                         , matchMethod
                                         , matchPathAndMethod) where
 
@@ -8,7 +9,9 @@ import Network.HTTPMock.Types
 import Network.HTTP.Types (Method)
 import Network.HTTPMock.Utils
 
--- Build request matchers
+matchEverything :: RequestMatcher
+matchEverything = RequestMatcher $ const True
+
 matchPath :: Text -> RequestMatcher
 matchPath path = RequestMatcher $ matchPath' path
 
