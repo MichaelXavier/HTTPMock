@@ -2,69 +2,61 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Network.HTTPMockSpec (spec) where
 
-import ClassyPrelude
-import Control.Rematch
-import Data.Default
-
-import Network.HTTPMock
-
-import Network.HTTPMock.SpecHelper
-import Test.Hspec
+import qualified Data.Aeson as A
+import Network.Http.Client ( emptyBody
+                           , inputStreamBody
+                           )
+import qualified System.IO.Streams as S
+import SpecHelper
 
 spec :: Spec
 spec = do
-  describe "resetRecorder" $ do
-    let mocker = def :: HTTPMocker
-    it "does nothing on a mocker with nothing recorded" $
-      resetRecorder mocker `shouldHaveSameRecordedRequests` mocker
+  describe "makeRequest" $ do
+    describe "GET" $ do
+      let req = buildReq GET "/hello"
 
-  describe "withMocker" $ do
-    it "mocks requests" $ withMocker_ matchPathMocker $ do
-      getBody url `shouldReturn` "fake-response"
+      it "returns the correct result" $
+        withDummyApp $ makeRequest req emptyBody concatHandler `shouldReturn` "hey"
+    describe "POST" $ do
+      let req = buildReq POST "/message"
 
-    it "mocks sequences" $ withMocker_ sequenceMocker $ do
-      replicateM 3 (getBody url) `shouldReturn` ["first-response", "second-response", "second-response"]
+      it "correctly posts the body" $ do
+        bsBody <- S.fromByteString "four"
+        withDummyApp $ makeRequest req (inputStreamBody bsBody) concatHandler `shouldReturn` "4"
 
-    it "handles non-GET requests too" $ withMocker_ (matchMethodMocker "POST") $ do
-      doPost `shouldReturn` "you sent a POST"
+    describe "JSON POST" $ do
+      let msg = TestMessage "sup?"
+      let req = buildReq POST "/json"
 
-    it "records requests" $
-      ("GET", "/foo/bar") `shouldBeRequestedOnceBy`
-        (fst <$> (runWithMocker_ def $ get_ url))
-    
-    it "records request to bogus paths" $
-      ("GET", "/bogus/path") `shouldBeRequestedOnceBy`
-        (fst <$> (runWithMocker_ def $ get_ "http://127.0.0.1:4568/bogus/path"))
+      it "can roundtrip JSON" $ do
+        bsBody <- S.fromLazyByteString . A.encode $ msg
+        withDummyApp $ makeRequest req (inputStreamBody bsBody) jsonHandler `shouldReturn` msg
 
-  describe "matchResultFromMocker" $ do
-    it "matches on the result of the action using the mocker" $
-      matchResultFromMocker (matchMethodMocker "POST") doPost $ is "you sent a POST"
+  describe "fakeRequest" $ do
+    describe "GET" $ do
+      let req = buildReq GET "/hello"
+      let faker = AlwaysReturns $ FakeResponse (buildResp 200 "OK") "fake hey"
 
+      it "returns the faked result" $
+        runFakeRequest faker req emptyBody concatHandler `shouldReturn` "fake hey"
 
-  describe "matchResultingMocker" $ do
-    it "matches against the modified mocker" $
-      matchResultingMocker (matchMethodMocker "POST") doPost $
-        allRequestsMatch [("POST", "/foo/bar")]
+      it "records the requests" $ do
+        history <- execFakeRequest faker req emptyBody concatHandler
+        expect history (hasRequest' 1 (withSignature GET "localhost" "/hello"))
 
-  describe "hasRequestWithBody" $ do
-    it "matches the positive case" $ do
-      matchResultingMocker (matchMethodMocker "POST") doPost $
-        hasRequestWithBody "POSTBODY"
+    describe "POST" $ do
+      let req = (buildReq POST "/message") { _reqHeaders = [("X-Top-Secret", "1")]}
+      let faker = AlwaysReturns $ FakeResponse (buildResp 200 "OK") "faked length"
 
-    it "matches the negative case" $ do
-      matchResultingMocker (matchMethodMocker "POST") doPost $
-        isNot $ hasRequestWithBody "SOMETHINGELSE"
+      it "returns the faked result" $ do
+        bsBody <- S.fromByteString "four"
+        runFakeRequest faker req (inputStreamBody bsBody) concatHandler `shouldReturn` "faked length"
 
-    it "works correctly on PUT" $ do
-      matchResultingMocker (matchMethodMocker "PUT") doPut $
-        hasRequestWithBody "POSTBODY"
-
-    it "works correctly on DELETE" $ do
-      matchResultingMocker (matchMethodMocker "DELETE") doDelete $
-        hasRequestWithBody "POSTBODY"
-      
-
-  where url    = "http://127.0.0.1:4568/foo/bar"
-        doPost   = postReturningBody url
-        doPut    = putReturningBody url
-        doDelete = deleteReturningBody url
+      it "records the request" $ do
+        bsBody <- S.fromByteString "four"
+        history <- execFakeRequest faker req (inputStreamBody bsBody) concatHandler
+        expect history (hasRequest' 1 (withSignature POST "localhost" "/message" `andAlso`
+                                       withBody "four" `andAlso`
+                                       withHeader ("x-top-secret", "1")))
+  where buildReq m p = Request m "localhost" dummyPort p []
+        buildResp code codeMsg = Response code codeMsg []
